@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wrong ❌</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to right, #ff4e50, #f9d423);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+        .message-box {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px red;
+        }
+
+        .message-box h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px #f00;
+        }
+
+        .message-box p {
+            font-size: 1.2rem;
+        }
+
+        .emoji {
+            font-size: 5rem;
+            animation: shake 0.5s 3;
+            will-change: transform;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="message-box">
+        <div class="emoji">❌</div>
+        <h1>Access Denied</h1>
+        <p>Oops! That was the wrong emoji. Please try again.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji CAPTCHA</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        .captcha-box {
+            background: #333;
+            border: 4px solid white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .captcha-img {
+            width: 250px;
+            height: 250px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 4px solid white;
+        }
+
+        .emoji {
+            font-size: 40px;
+            opacity: 0.5;
+            position: absolute;
+            z-index: 1;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .clickable-emoji {
+            font-size: 40px;
+            cursor: pointer;
+            z-index: 3;
+            transition: transform 0.3s ease-in-out;
+            position: absolute;
+        }
+
+        .clickable-emoji:hover {
+            transform: scale(1.3);
+        }
+
+        .message {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="captcha-box" id="captchaBox">
+        <img src="{{ url_for('static', filename=captcha.image) }}" class="captcha-img" id="captchaImg" alt="captcha">
+        <div class="message" id="message">Click the emoji that matches the face</div>
+    </div>
+
+    <script>
+        const correctEmoji = "{{ captcha.correct_emoji }}";
+        const emojis = {{ emojis|tojson }};
+        let verified = false;
+
+        // Create floating background emojis
+        const backgroundEmojis = ['😀','😡','😢','😍','😱','😆','😎','🤔','😴','🙄'];
+        for (let i = 0; i < 30; i++) {
+            const bgEmoji = document.createElement('div');
+            bgEmoji.className = 'emoji';
+            bgEmoji.textContent = backgroundEmojis[Math.floor(Math.random() * backgroundEmojis.length)];
+            bgEmoji.style.left = `${Math.random() * window.innerWidth}px`;
+            bgEmoji.style.top = `${Math.random() * window.innerHeight}px`;
+            document.body.appendChild(bgEmoji);
+
+            let dx = (Math.random() - 0.5) * 2;
+            let dy = (Math.random() - 0.5) * 2;
+
+            function animate() {
+                let x = parseFloat(bgEmoji.style.left);
+                let y = parseFloat(bgEmoji.style.top);
+                x += dx;
+                y += dy;
+                if (x < 0 || x > window.innerWidth) dx *= -1;
+                if (y < 0 || y > window.innerHeight) dy *= -1;
+                bgEmoji.style.left = `${x}px`;
+                bgEmoji.style.top = `${y}px`;
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Place clickable emojis with random movement
+        emojis.forEach(emoji => {
+            const clickable = document.createElement('div');
+            clickable.className = 'clickable-emoji';
+            clickable.textContent = emoji;
+            
+            // Get captcha box position and dimensions
+            const captchaBox = document.getElementById('captchaBox');
+            const boxRect = captchaBox.getBoundingClientRect();
+            
+            // Initial position (avoiding the captcha box)
+            let x, y;
+            do {
+                x = Math.random() * (window.innerWidth - 100);
+                y = Math.random() * (window.innerHeight - 100);
+            } while (
+                x > boxRect.left - 100 && 
+                x < boxRect.right + 100 && 
+                y > boxRect.top - 100 && 
+                y < boxRect.bottom + 100
+            );
+            
+            clickable.style.left = `${x}px`;
+            clickable.style.top = `${y}px`;
+
+            // Random movement
+            let dx = (Math.random() - 0.5) * 1.5; // Slower movement
+            let dy = (Math.random() - 0.5) * 1.5;
+
+            function animateEmoji() {
+                let currentX = parseFloat(clickable.style.left);
+                let currentY = parseFloat(clickable.style.top);
+                
+                // Update position
+                currentX += dx;
+                currentY += dy;
+                
+                // Bounce off screen edges
+                if (currentX < 0 || currentX > window.innerWidth - 100) dx *= -1;
+                if (currentY < 0 || currentY > window.innerHeight - 100) dy *= -1;
+                
+                // Avoid captcha box
+                if (currentX > boxRect.left - 100 && 
+                    currentX < boxRect.right + 100 && 
+                    currentY > boxRect.top - 100 && 
+                    currentY < boxRect.bottom + 100) {
+                    dx *= -1;
+                    dy *= -1;
+                }
+                
+                clickable.style.left = `${currentX}px`;
+                clickable.style.top = `${currentY}px`;
+                requestAnimationFrame(animateEmoji);
+            }
+
+            clickable.addEventListener("click", () => {
+                if (emoji === correctEmoji) {
+                    window.location.href = "/verified";
+                } else {
+                    window.location.href = "/wrong";
+                }
+            });
+
+            document.body.appendChild(clickable);
+            animateEmoji();
+        });
+    </script>
+</body>
+</html>
